@@ -1,0 +1,47 @@
+- name: Wait for SSH connection
+  hosts: all
+  gather_facts: false
+  tasks:
+    - name: Wait for SSH connection
+      ansible.builtin.wait_for_connection:
+        delay: 5
+        timeout: 300
+
+- name: Client Setup
+  hosts: client
+  become: true
+  tasks:
+    - name: Add user
+      ansible.builtin.user:
+        name: user
+        password: "{{ password | password_hash('sha512') }}"
+        shell: /bin/bash
+        state: present
+
+    - name: Link .bash_history to /dev/null to disable logging
+      ansible.builtin.file:
+        src: /dev/null
+        dest: "/home/user/.bash_history"
+        state: link
+        force: true
+
+    - name: Update and Upgrade
+      ansible.builtin.apt:
+        update_cache: true
+        upgrade: "dist"
+
+    - name: Check if a reboot is needed
+      register: reboot_required_file
+      ansible.builtin.stat:
+        path: /var/run/reboot-required
+        get_checksum: false
+
+    - name: Reboot if kernel was updated
+      ansible.builtin.reboot:
+        msg: "Reboot initiated by Ansible for kernel updates"
+        connect_timeout: 5
+        reboot_timeout: 300
+        pre_reboot_delay: 0
+        post_reboot_delay: 30
+        test_command: uptime
+      when: reboot_required_file.stat.exists
