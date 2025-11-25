@@ -1,4 +1,4 @@
-# 手書きSMTPが送れる環境の構築
+# ハンズオン用メールサーバー 構築手順
 
 1. 手元のPCにansible-playbook / passlibをインストール
 2. Ubuntu 24.04の仮想マシンを1台用意
