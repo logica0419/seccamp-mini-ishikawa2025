@@ -1,5 +1,5 @@
 - name: Wait for SSH connection
-  hosts: all
+  hosts: server
   gather_facts: false
   tasks:
     - name: Wait for SSH connection
@@ -7,35 +7,47 @@
         delay: 5
         timeout: 300
 
-- name: Client Setup
-  hosts: client
+- name: User user setup
+  hosts: server
   become: true
   tasks:
-    - name: Add user
+    - name: Add user user
       ansible.builtin.user:
         name: user
         password: "{{ password | password_hash('sha512') }}"
         shell: /bin/bash
         state: present
-
     - name: Link .bash_history to /dev/null to disable logging
       ansible.builtin.file:
         src: /dev/null
-        dest: "/home/user/.bash_history"
+        dest: /home/user/.bash_history
         state: link
         force: true
+    - name: Empty update-motd.d
+      ansible.builtin.shell:
+        cmd: rm -f /etc/update-motd.d/*
+      changed_when: false
+    - name: Deploy motd file
+      ansible.builtin.copy:
+        src: files/motd
+        dest: /etc/motd
+        mode: "0644"
 
+- name: Apt update & upgrade
+  hosts: server
+  become: true
+  tasks:
     - name: Update and Upgrade
       ansible.builtin.apt:
+        autoclean: true
+        autoremove: true
         update_cache: true
-        upgrade: "dist"
-
+        upgrade: dist
     - name: Check if a reboot is needed
       register: reboot_required_file
       ansible.builtin.stat:
         path: /var/run/reboot-required
         get_checksum: false
-
     - name: Reboot if kernel was updated
       ansible.builtin.reboot:
         msg: "Reboot initiated by Ansible for kernel updates"
@@ -45,3 +57,84 @@
         post_reboot_delay: 30
         test_command: uptime
       when: reboot_required_file.stat.exists
+
+- name: SSH hardening
+  hosts: server
+  become: true
+  tasks:
+    - name: Disable PasswordAuthentication
+      ansible.builtin.lineinfile:
+        path: /etc/ssh/sshd_config
+        regexp: "^PasswordAuthentication"
+        line: "PasswordAuthentication no"
+    - name: Allow user to SSH with password
+      ansible.builtin.blockinfile:
+        path: /etc/ssh/sshd_config
+        block: |
+          Match User user
+                  PasswordAuthentication yes
+    - name: Restart SSH
+      ansible.builtin.systemd:
+        name: ssh
+        state: restarted
+
+- name: Postfix installation
+  hosts: server
+  become: true
+  tasks:
+    - name: Install Postfix
+      ansible.builtin.apt:
+        name: postfix
+        state: present
+    - name: Deploy Postfix config
+      ansible.builtin.copy:
+        src: files/main.cf
+        dest: /etc/postfix/main.cf
+        mode: "0644"
+    - name: Restart Postfix
+      ansible.builtin.systemd:
+        name: postfix
+        state: restarted
+        enabled: true
+    - name: Add trainer user
+      ansible.builtin.user:
+        name: trainer
+        password: "{{ trainer_password | password_hash('sha512') }}"
+        shell: /bin/bash
+        state: present
+
+- name: /etc/hosts configuration
+  hosts: server
+  become: true
+  tasks:
+    - name: Add server.ishikawa-mini.camp
+      ansible.builtin.lineinfile:
+        path: /etc/hosts
+        regexp: "127.0.0.1 server.ishikawa-mini.camp"
+        line: "127.0.0.1 server.ishikawa-mini.camp"
+
+- name: Dovecot installation
+  hosts: server
+  become: true
+  tasks:
+    - name: Install Dovecot
+      ansible.builtin.apt:
+        name:
+          - dovecot-core
+          - dovecot-imapd
+        state: present
+    - name: Enable imap
+      ansible.builtin.lineinfile:
+        path: /etc/dovecot/conf.d/10-master.conf
+        regexp: "    [#]{0,1}port = 143"
+        line: "    port = 143"
+    - name: Enable plaintext authentication
+      ansible.builtin.lineinfile:
+        path: /etc/dovecot/conf.d/10-auth.conf
+        regexp: "^[#]{0,1}disable_plaintext_auth ="
+        line: "disable_plaintext_auth = no"
+    - name: Restart Dovecot
+      ansible.builtin.systemd:
+        name: dovecot
+        state: restarted
+        enabled: true
