@@ -1,28 +1,39 @@
 # telnetを使い、SMTPを手書きしてみよう
 
-「telnetを使い、SMTPを手書きしてみよう！」ハンズオンの資料です。  
+ 「telnetを使い、SMTPを手書きしてみよう」ハンズオンの資料です。  
 各自、自分のペースで進めてみて下さい。
 
 ## 事前準備
 
-ハンズオン用メールサーバーを自分で用意する場合は、[こちらの資料](./preparation/README.md)を利用して構築して下さい。  
-(セキュリティ・キャンプ2025ミニ（石川開催）参加者の皆さんは、講師が用意したサーバーを利用できますので、こちらの手順は不要です)
+セキュリティ・キャンプ2025ミニ（石川開催）参加者の皆さんは、講師が用意したサーバーを利用できますので、事前準備は不要です。
+
+ハンズオン用メールサーバーを自分で用意する場合は、[こちらの資料](./preparation/README.md)を利用して構築して下さい。
+
+## SSHでサーバーにログインする
+
+まずは、SSHでサーバーにログインし、今回の演習環境を遠隔操作できるようにしましょう！
+
+```bash
+ssh user@{サーバーのIPアドレス}
+```
+
+`user@{サーバーのIPアドレス}'s password:`と聞かれたら、講師から配布された (もしくは自分で設定した) パスワードを入力してください。
 
 ## 正常なメールを送ってみよう
 
 ### telnetでハンズオン用SMTPサーバーに接続する
 
-いよいよSMTPサーバーに接続してみましょう。  
+SMTPサーバーに接続してみましょう。  
 以下のコマンドで、ハンズオン用SMTPサーバーに接続します。
 
 ```bash
 telnet server.ishikawa-mini.camp 25
 ```
 
-以下のような表示が出れば成功です！
+以下のような表示が出れば、正常に接続できています
 
 ```console
-user@ishikawa-mail-server:~$ telnet server.ishikawa-mini.camp 25
+user@server-ishikawa-mini-camp:~$ telnet server.ishikawa-mini.camp 25
 Trying 127.0.0.1...
 Connected to server.ishikawa-mini.camp.
 Escape character is '^]'.
@@ -55,6 +66,11 @@ cat /etc/hosts
 </details>
 
 ---
+
+### ⚠️注意事項⚠️
+
+今回の環境からメールを送る際、日本語が含まれていると**文字化け**してしまいます！  
+メールの件名・本文には**英数字のみ**を利用するようにしてください。
 
 ### SMTPを手書きしてみる
 
@@ -112,8 +128,7 @@ cat /etc/hosts
   ```
 
   - **最後の`.`(ピリオド) を打った後にEnterを押す**と、メールが送信されます。
-    - ローマ字・英数字しか打ち込んでない場合は、`250 2.0.0 OK: queued as {メールID}`と出れば成功です！
-    - 日本語を含むメールを送信した場合はおそらく何も表示されませんが、講師のPCで受信できていれば成功です！
+    - `250 2.0.0 OK: queued as {メールID}`と出れば成功です！
 - SMTPを終了する
   - 最後に、以下の文字列を入力してください。
 
@@ -121,11 +136,36 @@ cat /etc/hosts
   QUIT
   ```
 
-  - `Connection closed by foreign host.`と出て、コマンドが終了していれば成功です！
+  - `221 2.0.0 Bye`と出て、コマンドが終了していれば成功です！
   - これでSMTP通信が終了しました。
 
-以上のコマンドを打ち終わると、下のような画面になるはずです。
-![log](images/7.png)
+以上のコマンドを打ち終わると、下のようなログになるはずです。
+
+```console
+user@server-ishikawa-mini-camp:~$ telnet server.ishikawa-mini.camp 25
+Trying 127.0.0.1...
+Connected to server.ishikawa-mini.camp.
+Escape character is '^]'.
+220 server.ishikawa-mini.camp ESMTP Postfix (Ubuntu)
+HELO localhost
+250 server.ishikawa-mini.camp
+MAIL FROM: trainer@ishikawa-mini.camp
+250 2.1.0 Ok
+RCPT TO: trainer@ishikawa-mini.camp
+250 2.1.5 Ok
+DATA
+354 End data with <CR><LF>.<CR><LF>
+From: trainer@ishikawa-mini.camp
+To: trainer@ishikawa-mini.camp
+Subject: Test message
+
+This is a test message!
+.
+250 2.0.0 Ok: queued as 20837C1009
+QUIT
+221 2.0.0 Bye
+Connection closed by foreign host.
+```
 
 ---
 
@@ -161,14 +201,12 @@ cat /etc/hosts
 
 ### 正しく送られたことを確かめる
 
-送信したメールが正しく送られたかは、以下の方法で確かめられます。
+セキュリティ・キャンプ2025ミニ（石川開催）参加者の皆さんは、講師のPCでメールが受信できているか確かめてみましょう。  
+以下の画像のように、受信トレイにメールが届いているはずです。
 
-- 宛先メールアドレスのメールボックスを確認する
-  - **迷惑メールフォルダなどに入っているかも**しれませんので、そちらも確認してみてください。
-- Brevoのダッシュボードから確認する
-  - <https://app-smtp.brevo.com/real-time> にアクセスし、メールの送信状況を確認してみてください。
-  - 次のように、「Delivered」となっているログがあれば成功です。  
-    ![delivered](images/8.png)
+![ok](images/1.png)
+
+ハンズオン用メールサーバーを自分で用意した場合は、Dovecot (IMAPサーバー) が動作しているため、送信したメールはそこから受信できます。
 
 ## 危険なメールを送信してみよう
 
@@ -178,40 +216,35 @@ cat /etc/hosts
 
 以下のように、`MAIL FROM`と`DATA`で入力する`From`部分を変更します。  
 自分が持っていようが持っていまいが、自由なアドレスでかまいません。
-![dangerous mail](images/9.png)
 
-最後に`250 2.0.0 OK`と書かれているので、**SMTPプロトコルとしては正常に送られています**。  
-ですが、<https://app-smtp.brevo.com/real-time> を見ると、Brevoが独自に**登録されていないメールアドレスからの送信を規制している**ことがわかります。
+```plaintext
+MAIL FROM: test@danger.com
+250 2.1.0 Ok
+RCPT TO: trainer@ishikawa-mini.camp
+250 2.1.5 Ok
+DATA
+354 End data with <CR><LF>.<CR><LF>
+From: test@danger.com
+To: trainer@ishikawa-mini.camp
+Subject: Dangerous message
 
-![dangerous mail log](images/10.png)
-
-なお、`MAIL FROM`で打ち込むアドレスのみ改変した場合は通りますが、`DATA`の`From`部分を改変した場合は通りません。  
-これによって、メールを見るときに**表示される送り主がなりすまされることを防ぐ**というBrevoの対策であることがわかります。
-
-### Fromに別名を付ける
-
-Fromの直接改変より騙すことができる確率は低いですが、**`DATA`の`From`部分には「表示名」として別名を付ける**ことができます。
-
-例えば今回は「セキュキャン銀行公式」(Seccamp Bank Official) を名乗ってみましょう。  
-`DATA`の`From`部分を以下のように入力します。
-
-```bash
-Seccamp Bank Official <{Brevoに登録したメールアドレス}>
+This is a dangerous message...
+.
+250 2.0.0 Ok: queued as 62D48C1009
 ```
 
-![fake mail](images/11.png)
+あなたの設定したメールアドレスが送り主になったメールが送られているはずです。
 
-`<>`で**囲まれた部分が実際のメールアドレス**、その**前までの部分が表示名**として扱われます。
-
-これでメールを送ると、送り主が「Seccamp Bank Official」となったメールが送信されるはずです。  
-自分のメールボックスを確認してください。
-
-![fake mail result](images/12.png)
+![dangerous](images/2.png)
 
 ## 自由にメールを送信してみよう
 
 ここまでのハンズオンで得た知識を活かして、いろんな宛名や内容でメールを送信してみましょう！  
+どの部分を変えればどんなメールが送れるのか、色々実験してみて下さい。
+
 普段メールを送信する際、このようなプロトコルが後ろにあるんだなぁと思って下さると幸いです。
+
+### ⚠️注意事項⚠️
 
 **他人に危険なメールを送ることは犯罪になり得ます！**  
 十分注意してください。
