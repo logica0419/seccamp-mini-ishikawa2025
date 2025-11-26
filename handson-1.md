@@ -228,7 +228,7 @@ From: test@danger.com
 To: trainer@ishikawa-mini.camp
 Subject: Dangerous message
 
-This is a dangerous message...
+This is a dangerous message.
 .
 250 2.0.0 Ok: queued as 62D48C1009
 ```
