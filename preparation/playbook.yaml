@@ -23,15 +23,15 @@
         dest: /home/user/.bash_history
         state: link
         force: true
-    - name: Empty update-motd.d
-      ansible.builtin.shell:
-        cmd: rm -f /etc/update-motd.d/*
-      changed_when: false
     - name: Deploy motd file
       ansible.builtin.copy:
         src: files/motd
         dest: /etc/motd
         mode: "0644"
+    - name: Empty update-motd.d
+      ansible.builtin.shell:
+        cmd: rm -f /etc/update-motd.d/*
+      changed_when: false
 
 - name: Apt update & upgrade
   hosts: server
