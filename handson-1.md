@@ -61,7 +61,7 @@ SMTPサーバーに接続してみましょう。
 telnet server.ishikawa-mini.camp 25
 ```
 
-以下のような表示が出れば、正常に接続できています
+以下のような表示が出れば、正常に接続できています。
 
 ```console
 user@server-ishikawa-mini-camp:~$ telnet server.ishikawa-mini.camp 25
