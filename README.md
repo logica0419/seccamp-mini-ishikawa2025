@@ -7,7 +7,7 @@
 [こちらのPDF](./lecture.pdf)が講義資料です。
 
 以下のリンクからもアクセスできます。  
-<https://speakerdeck.com/logica0419/email-security>
+<https://speakerdeck.com/logica0419/email-security-2025>
 
 ## ハンズオン
 
