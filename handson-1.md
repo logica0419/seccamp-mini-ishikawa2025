@@ -47,7 +47,7 @@ ssh user@{サーバーのIPアドレス}
 『ITエンジニアとして知っておいてほしい、電子メールという大きな穴』
 ハンズオン用 メールサーバー へようこそ！
 Last login: {時間} from {IPアドレス}
-user@server-ishikawa-mini-camp:~$ 
+user@server-ishikawa-mini-camp:~$
 ```
 
 ## 正常なメールを送ってみよう
@@ -116,7 +116,7 @@ cat /etc/hosts
   - まずは自己紹介をします。以下の文字列を入力して下さい。
   - `{自分の好きな文字列}`は本来自分のアドレスを入れますが、適当な文字列でも大丈夫です。
 
-  ```bash
+  ```plaintext
   HELO {自分の好きな文字列}
   ```
 
@@ -125,7 +125,7 @@ cat /etc/hosts
   - 送り主のアドレスを伝えます。以下の文字列を入力してください。
   - `{自分のメールアドレス}`は、各自置き換えてください。
 
-  ```bash
+  ```plaintext
   MAIL FROM: {自分のメールアドレス}
   ```
 
@@ -134,7 +134,7 @@ cat /etc/hosts
   - 宛先のアドレスを伝えます。以下の文字列を入力してください。
   - 今回は講師のPCで受信するため、**宛先は固定**です。
 
-  ```bash
+  ```plaintext
   RCPT TO: trainer@ishikawa-mini.camp
   ```
 
@@ -142,14 +142,14 @@ cat /etc/hosts
 - メールの内容を入力する
   - メールの内容を入力します。まずは以下の文字列を入力してください。
 
-  ```bash
+  ```plaintext
   DATA
   ```
 
   - `354 End data with <CR><LF>.<CR><LF>`と出て、**情報を入力する準備が整った**ことが通知されます。
   - その後、以下のように文字列を入力します。`{}`で囲まれた文字列は、適宜置き換えてください。
 
-  ```bash
+  ```plaintext
   From: {自分のメールアドレス}
   To: trainer@ishikawa-mini.camp
   Subject: {メールの件名 (自由)}
@@ -163,7 +163,7 @@ cat /etc/hosts
 - SMTPを終了する
   - 最後に、以下の文字列を入力してください。
 
-  ```bash
+  ```plaintext
   QUIT
   ```
 
@@ -248,7 +248,9 @@ Connection closed by foreign host.
 以下のように、`MAIL FROM`と`DATA`で入力する`From`部分を変更します。  
 自分が持っていようが持っていまいが、自由なアドレスでかまいません。
 
-```plaintext
+```console
+user@server-ishikawa-mini-camp:~$ telnet server.ishikawa-mini.camp 25
+(省略)
 MAIL FROM: test@danger.com
 250 2.1.0 Ok
 RCPT TO: trainer@ishikawa-mini.camp
