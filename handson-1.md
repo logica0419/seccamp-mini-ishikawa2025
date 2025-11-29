@@ -21,6 +21,7 @@ Windowsの方は「PowerShell」を、Macの方は「ターミナル」を開い
 ssh user@{サーバーのIPアドレス}
 ```
 
+`Are you sure you want to continue connecting (yes/no/[fingerprint])?`という表示が出たら`yes`と入力。  
 `user@{サーバーのIPアドレス}'s password:`と聞かれたら、講師から配布された (もしくは自分で設定した) パスワードを入力してください。
 
 以下のような文字列が出てきたら成功です！
