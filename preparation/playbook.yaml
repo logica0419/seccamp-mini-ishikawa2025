@@ -91,6 +91,11 @@
         src: files/main.cf
         dest: /etc/postfix/main.cf
         mode: "0644"
+    - name: Deploy master process config
+      ansible.builtin.copy:
+        src: files/master.cf
+        dest: /etc/postfix/master.cf
+        mode: "0644"
     - name: Restart Postfix
       ansible.builtin.systemd:
         name: postfix
